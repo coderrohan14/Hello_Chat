@@ -2,6 +2,7 @@ package com.rohan.chatapp.Authentication
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.rohan.chatapp.R
 import com.rohan.chatapp.messages.LatestMessagesActivity
@@ -22,6 +24,10 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        val myFont: Typeface? = ResourcesCompat.getFont(this.applicationContext, R.font.myfont)
+        tvWelcomeLogin.typeface = myFont
+        tvNewUser.typeface = myFont
+        btnLogin.typeface = myFont
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         supportActionBar?.hide()
         window.setFlags(

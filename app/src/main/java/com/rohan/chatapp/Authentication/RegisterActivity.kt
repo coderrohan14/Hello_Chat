@@ -2,6 +2,7 @@ package com.rohan.chatapp.Authentication
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.*
+import androidx.core.content.res.ResourcesCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
@@ -20,6 +22,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.rohan.chatapp.R
 import com.rohan.chatapp.messages.LatestMessagesActivity
 import com.rohan.chatapp.models.User
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
@@ -31,6 +34,11 @@ class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+        val myFont: Typeface? = ResourcesCompat.getFont(this.applicationContext, R.font.myfont)
+        tvWelcomRegister.typeface = myFont
+        tvAddPhoto.typeface = myFont
+        tvAlreadyRegistered.typeface = myFont
+        btnRegister.typeface = myFont
         supportActionBar?.hide()
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,

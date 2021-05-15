@@ -5,7 +5,10 @@ import android.graphics.drawable.AnimationDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
+import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +30,7 @@ import java.lang.Exception
 class NewMessageActivity : AppCompatActivity() {
     lateinit var rv_new_message:RecyclerView
     val dbUrl = "https://chatapp-43ce5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    var vh:View?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_message)
@@ -36,17 +40,40 @@ class NewMessageActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch{
             fetchUsers()
         }
+        adapter.setOnItemLongClickListener { item, view ->
+            vh = rv_new_message.layoutManager?.findViewByPosition(adapter.getAdapterPosition(item))
+            showPopup(view)
+            true
+        }
+    }
+    private fun showPopup(view:View) {
+        val popup = PopupMenu(this, view)
+        popup.inflate(R.menu.profile_menu)
+        popup.setOnMenuItemClickListener { item: MenuItem? ->
+            when (item!!.itemId) {
+                R.id.viewProfile -> {
+
+                    Intent(this,ProfileImageDisplayActivity::class.java).also {
+                        it.putExtra("Image",vh?.new_image?.text.toString())
+                        it.putExtra("uid",vh?.newUid?.text.toString())
+                        startActivity(it)
+                    }
+                }
+            }
+            true
+        }
+        popup.show()
     }
     companion object{
         val USER_KEY = "USER_KEY"
     }
+    val adapter = GroupAdapter<ViewHolder>()
     private fun fetchUsers(){
     Log.d("test","HERE!!!!")
         val ref = FirebaseDatabase.getInstance(dbUrl).getReference("/users")
         ref.addListenerForSingleValueEvent(object:ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 Log.d("test","HERE2!!!!")
-                val adapter = GroupAdapter<ViewHolder>()
                snapshot.children.forEach{
                    val user = it.getValue(User::class.java)
                    if(user!=null&&user.uid!=FirebaseAuth.getInstance().uid){
@@ -73,6 +100,8 @@ class NewMessageActivity : AppCompatActivity() {
 class UserItem(val user:User): Item<ViewHolder>(){
     lateinit var rocketAnimation: AnimationDrawable
     override fun bind(viewHolder: ViewHolder, position: Int) {
+        viewHolder.itemView.newUid.text = user.uid.toString()
+        viewHolder.itemView.new_image.text = user.profileImageUrl.toString()
         viewHolder.itemView.tv_username_row.text = user.username
         viewHolder.itemView.img_user_row.apply {
             setBackgroundResource(R.drawable.progress_animation)

@@ -4,6 +4,7 @@ import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.AnimationDrawable
 import android.os.*
 import android.telecom.Call
@@ -12,9 +13,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.getColor
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -28,6 +31,7 @@ import com.google.firebase.database.collection.LLRBNode
 import com.rohan.chatapp.Authentication.LoginActivity
 import com.rohan.chatapp.NewMessageActivity
 import com.rohan.chatapp.NewMessageActivity.Companion.USER_KEY
+import com.rohan.chatapp.ProfileImageDisplayActivity
 import com.rohan.chatapp.R
 import com.rohan.chatapp.models.ChatMessage
 import com.rohan.chatapp.models.User
@@ -38,7 +42,9 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.ViewHolder
 import kotlinx.android.synthetic.main.activity_chat_log.*
 import kotlinx.android.synthetic.main.activity_latest_messages.*
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.latest_messages_row.view.*
+import kotlinx.android.synthetic.main.user_row_new_message.view.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.NonCancellable.start
 import java.lang.Exception
@@ -48,9 +54,12 @@ class LatestMessagesActivity : AppCompatActivity() {
         var currentUser: User? = null
     }
     lateinit var rvLatestMsg:RecyclerView
+    var vh:View?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_latest_messages)
+        val myFont: Typeface? = ResourcesCompat.getFont(this.applicationContext, R.font.myfont)
+        tvNoMsg.typeface = myFont
         supportActionBar?.title = "Latest Messages"
         rvLatestMsg = findViewById(R.id.rvLatestMsg)
         rvLatestMsg.adapter = adapter
@@ -60,6 +69,12 @@ class LatestMessagesActivity : AppCompatActivity() {
                 it.putExtra(USER_KEY, row.chatPartnerUser)
                 startActivity(it)
             }
+        }
+
+        adapter.setOnItemLongClickListener { item, view ->
+            vh = rvLatestMsg.layoutManager?.findViewByPosition(adapter.getAdapterPosition(item))
+            showPopup(view)
+            true
         }
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -72,6 +87,25 @@ class LatestMessagesActivity : AppCompatActivity() {
                 tvNoMsg.visibility = View.VISIBLE
             }
         },3900)
+    }
+
+    private fun showPopup(view:View) {
+        val popup = PopupMenu(this, view)
+        popup.inflate(R.menu.profile_menu)
+        popup.setOnMenuItemClickListener { item: MenuItem? ->
+            when (item!!.itemId) {
+                R.id.viewProfile -> {
+                    Intent(this, ProfileImageDisplayActivity::class.java).also {
+                        it.putExtra("Image",vh?.latest_image?.text.toString())
+                        Log.d("testing4",vh?.latest_image?.text.toString())
+                        it.putExtra("uid",vh?.latest_uid?.text.toString())
+                        startActivity(it)
+                    }
+                }
+            }
+            true
+        }
+        popup.show()
     }
 
     val latestMessagesMap = HashMap<String,ChatMessage>()
@@ -146,6 +180,7 @@ class LatestMessagesActivity : AppCompatActivity() {
             }else{
                 chatPartenerId = chatmessage.fromId
             }
+            val id = chatPartenerId.toString()
             val ref = FirebaseDatabase.getInstance(dbUrl).getReference("/users/$chatPartenerId")
             ref.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -157,11 +192,13 @@ class LatestMessagesActivity : AppCompatActivity() {
                     }
                     rocketAnimation.start()
                     Picasso.get().load(chatPartnerUser?.profileImageUrl).fit().centerCrop().into(viewHolder.itemView.imgLatestMessage)
+                    viewHolder.itemView.latest_image.text = chatPartnerUser?.profileImageUrl.toString()
                 }
                 override fun onCancelled(error: DatabaseError) {
 
                 }
             })
+            viewHolder.itemView.latest_uid.text = id.toString()
         }
         override fun getLayout(): Int {
             return R.layout.latest_messages_row
