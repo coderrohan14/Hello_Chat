@@ -30,7 +30,7 @@ import java.util.*
 
 
 class RegisterActivity : AppCompatActivity() {
-    lateinit var auth : FirebaseAuth
+    private lateinit var auth : FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -108,7 +108,7 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    var selectedPhotoUri: Uri? = null
+    private var selectedPhotoUri: Uri? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -126,6 +126,7 @@ class RegisterActivity : AppCompatActivity() {
         }
         val filename = UUID.randomUUID().toString()
         val ref = FirebaseStorage.getInstance().getReference("/images/$filename")
+
         ref.putFile(selectedPhotoUri!!)
             .addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener {
@@ -140,7 +141,7 @@ class RegisterActivity : AppCompatActivity() {
             }
     }
 
-    val dbUrl = "https://chatapp-43ce5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    private val dbUrl = "https://chatapp-43ce5-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
     private fun saveUserToFirebaseDataBase(profileImageUrl:String){
         val uid = auth.uid?:""
